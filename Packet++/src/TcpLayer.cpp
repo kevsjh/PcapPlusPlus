@@ -5,6 +5,7 @@
 #include "IPv4Layer.h"
 #include "IPv6Layer.h"
 #include "PayloadLayer.h"
+#include "DnsLayer.h"
 #include "HttpLayer.h"
 #include "SSLLayer.h"
 #include "SipLayer.h"
@@ -356,6 +357,8 @@ void TcpLayer::parseNextLayer()
 		m_NextLayer = new HttpResponseLayer(payload, payloadLen, this, m_Packet);
 	else if (SSLLayer::IsSSLMessage(portSrc, portDst, payload, payloadLen))
 		m_NextLayer = SSLLayer::createSSLMessage(payload, payloadLen, this, m_Packet);
+	else if ((payloadLen >= headerLen) && (DnsLayer::isDnsPort(portDst) || DnsLayer::isDnsPort(portSrc)))
+		m_NextLayer = new DnsLayer(payload, payloadLen, this, m_Packet);
 	else if (SipLayer::isSipPort(portDst))
 	{
 		if (SipRequestFirstLine::parseMethod((char*)payload, payloadLen) != SipRequestLayer::SipMethodUnknown)
